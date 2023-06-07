@@ -1,6 +1,93 @@
 const express = require("express");
 const router = express.Router();
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const NotesModel = require("../model/notesModal");
+const UsersModel = require("../model/userModal");
+
+router.post("/register", async (req, res) => {
+  const { userName, password, email } = req.body;
+
+  UsersModel.findOne({ userName: userName })
+    .then((existingUser) => {
+      if (existingUser) {
+        return res.status(409).json({
+          message: "User already exists! try to recover your password",
+        });
+      }
+
+      bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(password, salt, (err, hash) => {
+          console.log(hash, "hash val");
+          if (err) {
+            return res.status(500).json({ message: "Failed to register User" });
+          }
+
+          const newUser = new UsersModel({
+            userName: userName,
+            password: hash,
+            email: email,
+          });
+
+          newUser
+            .save()
+            .then(() => {
+              res
+                .status(201)
+                .json({ message: "User Registered Successfully!" });
+            })
+            .catch((err) => {
+              res.status(500).json({ message: "Failed to Register user" });
+            });
+        });
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({ message: "Failed to Register user" });
+    });
+});
+
+router.post("/login", (req, res) => {
+  const { password, email } = req.body;
+
+  UsersModel.findOne({ email: email })
+    .then((user) => {
+      if (!user) {
+        return res.status(401).json({ message: "Authentication failed" });
+      }
+
+      bcrypt.compare(password, user.password, (err, result) => {
+        if (err | !result) {
+          return res.status(401).json({ message: "Authentication failed" });
+        }
+
+        // Generate JWT Token
+        const token = jwt.sign({ userId: user._id }, "secret_key", {
+          expiresIn: "1h",
+        });
+
+        res.json({ token });
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({ message: "Failed to authenticate user" });
+    });
+});
+
+//Login
+// router.post("/login", async (req, res) => {
+//   const data = new UsersModel({
+//     email: req.body.email,
+//     password: req.body.password,
+//   });
+
+//   try {
+//     const dataToSave = await data.save();
+//     res.status(200).json(dataToSave);
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// });
 
 //Post method
 router.post("/post", async (req, res) => {
