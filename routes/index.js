@@ -28,7 +28,7 @@ router.get("/getAll", async (req, res) => {
 });
 
 //Get by ID Method
-router.get("/getOne/:id", async (req, res) => {
+router.get("/getNotesById/:id", async (req, res) => {
   try {
     const data = await NotesModel.findById(req.params.id);
     res.json(data);
