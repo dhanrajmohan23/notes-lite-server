@@ -9,6 +9,9 @@ const notesSchema = new mongoose.Schema(
     category: {
       type: String,
     },
+    userId: {
+      type: String,
+    },
   },
   {
     timestamps: true,

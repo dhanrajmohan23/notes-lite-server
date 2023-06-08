@@ -12,7 +12,7 @@ router.post("/register", async (req, res) => {
     .then((existingUser) => {
       if (existingUser) {
         return res.status(409).json({
-          message: "User already exists! try to recover your password",
+          message: "User already exists! try to Login",
         });
       }
 
@@ -62,11 +62,11 @@ router.post("/login", (req, res) => {
         }
 
         // Generate JWT Token
-        const token = jwt.sign({ userId: user._id }, "secret_key", {
+        const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
           expiresIn: "1h",
         });
 
-        res.json({ token });
+        res.json({ token, userId: user._id });
       });
     })
     .catch((err) => {
@@ -74,26 +74,12 @@ router.post("/login", (req, res) => {
     });
 });
 
-//Login
-// router.post("/login", async (req, res) => {
-//   const data = new UsersModel({
-//     email: req.body.email,
-//     password: req.body.password,
-//   });
-
-//   try {
-//     const dataToSave = await data.save();
-//     res.status(200).json(dataToSave);
-//   } catch (error) {
-//     res.status(400).json({ message: error.message });
-//   }
-// });
-
 //Post method
 router.post("/post", async (req, res) => {
   const data = new NotesModel({
     note: req.body.note,
     category: req.body.category,
+    userId: req.body.userId,
   });
 
   try {
@@ -103,6 +89,29 @@ router.post("/post", async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
+// Protected Route
+// router.post("/post", async (req, res) => {
+//   const token = req.headers.authorization;
+
+//   jwt.verify(token, process.env.SECRET_KEY, async (err, decoded) => {
+//     if (err) {
+//       return res.status(401).json({ message: "Authentication failed" });
+//     } else {
+//       const data = new NotesModel({
+//         note: req.body.note,
+//         category: req.body.category,
+//       });
+
+//       try {
+//         const dataToSave = await data.save();
+//         res.status(200).json(dataToSave);
+//       } catch (error) {
+//         res.status(400).json({ message: error.message });
+//       }
+//     }
+//   });
+// });
 
 // Get all method
 router.get("/getAll", async (req, res) => {
