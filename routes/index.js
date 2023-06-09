@@ -124,9 +124,9 @@ router.get("/getAll", async (req, res) => {
 });
 
 //Get by ID Method
-router.get("/getNotesById/:id", async (req, res) => {
+router.get("/getNotesByUserId/:id", async (req, res) => {
   try {
-    const data = await NotesModel.findById(req.params.id);
+    const data = await NotesModel.where("userId").equals(req.params.id);
     res.json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
